@@ -1,8 +1,9 @@
 const { Plugin } = require('powercord/entities');
 const classes = require('./classes.json');
 module.exports = class appendOldClassnames extends Plugin {
+    mutate;
     startPlugin() {
-        var mutate = new window.MutationObserver(() => {
+        this.mutate = new window.MutationObserver(() => {
           for (const el of document.body.getElementsByTagName("*")) {
             for (const className of el.classList) {
               if (classes[className]) {
@@ -11,9 +12,14 @@ module.exports = class appendOldClassnames extends Plugin {
             }
           }
         })
-        mutate.observe(document.body, {childList: true, subtree: true})
+        this.mutate.observe(document.body, {childList: true, subtree: true})
     }
       pluginWillUnload() {
-        // no inject because im stupid
+        this.mutate.disconnect();
+        for (const cls of Object.keys(classes)) {
+          for (const el of document.getElementsByClassName(cls)) {
+            el.classList.remove(classes[cls]);
+          }
+        }
     }
 };
